@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  server:
+    build: .
+    env_file:
+      - ./.env
+    ports:
+      - "${SERVER_PORT:-8000}:8080"
+    depends_on:
+      - db
+    networks:
+      - cat-empire
+  db:
+    image: postgres:14.1-alpine
+    container_name: cat-db
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABSE_PORT:-5432}:5432"
+    volumes:
+      - cat-db:/var/lib/postgresql
+    networks:
+      - cat-empire
+
+
+volumes:
+  cat-db:
+
+networks:
+  cat-empire:
+    name: 'cat-empire-network'

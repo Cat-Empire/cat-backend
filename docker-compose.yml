@@ -3,6 +3,7 @@ version: "3.9"
 services:
   server:
     build: .
+    container_name: cat-backend
     env_file:
       - ./.env
     ports:
@@ -28,6 +29,7 @@ services:
 
 volumes:
   cat-db:
+    name: 'cat-db'
 
 networks:
   cat-empire:

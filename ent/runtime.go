@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/Cat-Empire/cat-backend/ent/post"
 	"github.com/Cat-Empire/cat-backend/ent/schema"
 	"github.com/Cat-Empire/cat-backend/ent/user"
 )
@@ -13,6 +14,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	postFields := schema.Post{}.Fields()
+	_ = postFields
+	// postDescTitle is the schema descriptor for title field.
+	postDescTitle := postFields[0].Descriptor()
+	// post.DefaultTitle holds the default value on creation for the title field.
+	post.DefaultTitle = postDescTitle.Default.(string)
+	// postDescDescription is the schema descriptor for description field.
+	postDescDescription := postFields[1].Descriptor()
+	// post.DefaultDescription holds the default value on creation for the description field.
+	post.DefaultDescription = postDescDescription.Default.(string)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.

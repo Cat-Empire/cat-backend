@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/Cat-Empire/cat-backend/ent"
+	"github.com/Cat-Empire/cat-backend/graph"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-
 	_ "github.com/lib/pq"
 )
 
@@ -47,9 +49,41 @@ func main() {
 	}
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Welcome!")
-	})
+	srv := handler.NewDefaultServer(graph.NewSchema(client))
+	{
+		e.POST("/users", func(c echo.Context) error {
+			// Create an article entity
+			a, err := client.Post.Create().
+				SetTitle("title 1").
+				SetDescription("description 1").
+				Save(c.Request().Context())
+			if !errors.Is(err, nil) {
+				log.Fatalf("Error: failed creating article %v\n", err)
+			}
 
+			u, err := client.User.
+				Create().
+				SetName("Bob").
+				SetAge(21).
+				AddPosts(a). // Add article to the user
+				Save(c.Request().Context())
+
+			if !errors.Is(err, nil) {
+				log.Fatalf("Error: failed creating user %v\n", err)
+			}
+
+			return c.JSON(http.StatusCreated, u)
+		})
+		e.POST("/query", func(c echo.Context) error {
+			srv.ServeHTTP(c.Response(), c.Request())
+			return nil
+		})
+
+		e.GET("/playground", func(c echo.Context) error {
+			playground.Handler("GraphQL", "/query").ServeHTTP(c.Response(), c.Request())
+			return nil
+		})
+
+	}
 	e.Logger.Fatal(e.Start(":8080"))
 }
